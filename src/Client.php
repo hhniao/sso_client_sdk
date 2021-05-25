@@ -13,6 +13,7 @@ use GuzzleHttp\Exception\RequestException;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Psr\SimpleCache\CacheInterface;
+use SSOClientSDK\Utils\Signature;
 
 class Client
 {
@@ -27,9 +28,9 @@ class Client
 
     public function __construct($config, $cache)
     {
-        $localConfig          = require(__DIR__ . '/config/config.php');
-        $this->config         = array_merge($localConfig, $config);
-        $this->cache          = $cache;
+        $localConfig  = require(__DIR__ . '/config/config.php');
+        $this->config = array_merge($localConfig, $config);
+        $this->cache  = $cache;
 
     }
 
@@ -125,21 +126,20 @@ class Client
     }
 
     /**
-     *
      * 退出登录, 通知sso业务端已经退出.
+     *
      * @param $localToken
      *
      * @return bool
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\SimpleCache\InvalidArgumentException
-     *
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/25
      */
     public function logout($localToken)
     {
         $cache    = $this->cache;
-        $get = $this->config['cache']['get'];
+        $get      = $this->config['cache']['get'];
         $ssoToken = $cache->$get($localToken . '.sso_token');
         $url      = $this->config['url'] . $this->config['api']['logout'];
 
@@ -169,7 +169,7 @@ class Client
         $expire = $token->getClaim('exp');
         $ttl    = $expire - time();
         $cache  = $this->cache;
-        $set = $this->config['cache']['set'];
+        $set    = $this->config['cache']['set'];
         $cache->$set($localToken . '.sso_login', true, 300);
         $cache->$set($localToken . '.sso_token', $ssoToken, $ttl);
         $cache->$set(md5($ssoToken . '.sso_token'), $localToken, $ttl);
@@ -179,7 +179,7 @@ class Client
     {
         $this->parseToken($ssoToken);
         $cache = $this->cache;
-        $get = $this->config['cache']['get'];
+        $get   = $this->config['cache']['get'];
         return $cache->$get(md5($ssoToken . '.sso_token'));
     }
 
@@ -205,7 +205,7 @@ class Client
     public function checkStatus($localToken, $remoteCheck = false)
     {
         $cache = $this->cache;
-        $has = $this->config['cache']['has'];
+        $has   = $this->config['cache']['has'];
         if (!$remoteCheck) {
             //检查本地sso登录即可
             if ($cache->$has($localToken . '.sso_login') && $cache->$has($localToken . '.sso_token')) {
@@ -213,7 +213,7 @@ class Client
             }
         }
 
-        $get = $this->config['cache']['get'];
+        $get      = $this->config['cache']['get'];
         $ssoToken = $cache->$get($localToken . '.sso_token');
         $this->parseToken($ssoToken);
         if (!$ssoToken) {
@@ -241,5 +241,10 @@ class Client
         }
 
         return false;
+    }
+
+    public function checkSign($data)
+    {
+        return Signature::checkSign($data, $this->config['sign']['secret']);
     }
 }
