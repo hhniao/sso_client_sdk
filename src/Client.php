@@ -25,14 +25,12 @@ class Client
      */
     protected $config;
 
-    private $exceptionClass;
-
     public function __construct($config, $cache)
     {
         $localConfig          = require(__DIR__ . '/config/config.php');
         $this->config         = array_merge($localConfig, $config);
         $this->cache          = $cache;
-        $this->exceptionClass = $config['exception_class'] ?? Exception::class;
+
     }
 
     public function parseToken($ssoToken)
@@ -43,8 +41,7 @@ class Client
         $check = $token->verify(new Sha256(), $this->config['jwt']['secret']);
 
         if (!$check) {
-            $exceptionClass = $this->exceptionClass;
-            throw new $exceptionClass("非法token, 请确认是否配置jwt key");
+            throw new Exception("非法token, 请确认是否配置jwt key");
         }
 
         return $token;
@@ -74,13 +71,13 @@ class Client
         } catch (RequestException $e) {
             $code = $e->getResponse()->getStatusCode();
             if ($code === 401) {
-                throw new $this->exceptionClass(401, '未登录');
+                throw new Exception('未登录');
             }
             if ($code === 404) {
-                throw new $this->exceptionClass(404, '请检查SSO域名配置是否正确.');
+                throw new Exception('请检查SSO域名配置是否正确.');
             }
         }
-        throw new $this->exceptionClass(401, '未登录');
+        throw new Exception('未登录');
     }
 
     /**
@@ -118,13 +115,13 @@ class Client
         } catch (RequestException $e) {
             $code = $e->getResponse()->getStatusCode();
             if ($code === 401) {
-                throw new $this->exceptionClass(401, '未登录');
+                throw new Exception('未登录');
             }
             if ($code === 404) {
-                throw new $this->exceptionClass(404, '请检查SSO域名配置是否正确.');
+                throw new Exception('请检查SSO域名配置是否正确.');
             }
         }
-        throw new $this->exceptionClass(401, '未登录');
+        throw new Exception('未登录');
     }
 
     /**
