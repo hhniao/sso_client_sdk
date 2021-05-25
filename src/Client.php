@@ -40,7 +40,7 @@ class Client
         $parse = new Parser();
         $token = $parse->parse($ssoToken);
 
-        $check = $token->verify(new Sha256(), $this->config['secret']);
+        $check = $token->verify(new Sha256(), $this->config['jwt']['secret']);
 
         if (!$check) {
             $exceptionClass = $this->exceptionClass;
@@ -127,6 +127,18 @@ class Client
         throw new $this->exceptionClass(401, '未登录');
     }
 
+    /**
+     *
+     * 退出登录, 通知sso业务端已经退出.
+     * @param $localToken
+     *
+     * @return bool
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     *
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/5/25
+     */
     public function logout($localToken)
     {
         $cache    = $this->cache;

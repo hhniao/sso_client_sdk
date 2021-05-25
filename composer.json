@@ -1,6 +1,11 @@
 {
     "name": "ny/sso_client_sdk",
     "type": "library",
+    "description": "sso client sdk",
+    "keywords": [
+        "sso",
+        "sso client sdk"
+    ],
     "version": "1.0.0",
     "authors": [
         {
@@ -8,7 +13,10 @@
             "email": "448455556@qq.com"
         }
     ],
-    "minimum-stability": "stable",
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
     "require": {
         "php": ">=7.2",
         "lcobucci/jwt": "3.3.3",

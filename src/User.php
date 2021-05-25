@@ -9,7 +9,6 @@ namespace SSOClientSDK;
 
 
 use GuzzleHttp\Client as HttpClient;
-use think\Cache;
 
 class User extends Client
 {
@@ -53,13 +52,14 @@ class User extends Client
     }
 
     /**
-     *
      * 修改个人资料, 积分
+     *
      * @param string $localToken
-     * @param array $data ["name" => "姓名","nickname" => "昵称","mobile" => "手机号","head_img" => "头像","sex" => "性别"]
+     * @param array  $data ["name" => "姓名","nickname" => "昵称","mobile" => "手机号","head_img" => "头像","sex" => "性别"]
      *
      * @return bool
-     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/20
      */

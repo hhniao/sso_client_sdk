@@ -18,8 +18,13 @@ return [
         'register'      => '/api/user/user/add',
 
     ],
-    'secret'           => '',
+    'jwt'              => [
+        'secret' => '',
+    ],
 
+    'sign' => [
+        'secret' => ''
+    ],
     // 列表中的 路径强制校验sso登录状态.
     'force_sso_verify' => [],
     'exception_class'  => Exception::class,
