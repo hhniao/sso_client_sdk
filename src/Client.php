@@ -142,7 +142,8 @@ class Client
     public function logout($localToken)
     {
         $cache    = $this->cache;
-        $ssoToken = $cache->get($localToken . '.sso_token');
+        $get = $this->config['cache']['get'];
+        $ssoToken = $cache->$get($localToken . '.sso_token');
         $url      = $this->config['url'] . $this->config['api']['logout'];
 
         $client = new HttpClient();
@@ -171,23 +172,27 @@ class Client
         $expire = $token->getClaim('exp');
         $ttl    = $expire - time();
         $cache  = $this->cache;
-        $cache->set($localToken . '.sso_login', true, 300);
-        $cache->set($localToken . '.sso_token', $ssoToken, $ttl);
-        $cache->set(md5($ssoToken . '.sso_token'), $localToken, $ttl);
+        $set = $this->config['cache']['set'];
+        $cache->$set($localToken . '.sso_login', true, 300);
+        $cache->$set($localToken . '.sso_token', $ssoToken, $ttl);
+        $cache->$set(md5($ssoToken . '.sso_token'), $localToken, $ttl);
     }
 
     public function getLocalToken($ssoToken)
     {
         $this->parseToken($ssoToken);
         $cache = $this->cache;
-        return $cache->get(md5($ssoToken . '.sso_token'));
+        $get = $this->config['cache']['get'];
+        return $cache->$get(md5($ssoToken . '.sso_token'));
     }
 
     public function setLogout($localToken)
     {
         $cache = $this->cache;
-        $cache->rm($localToken . '.sso_login');
-        $cache->rm($localToken . '.sso_token');
+
+        $m = $this->config['cache']['delete'];
+        $cache->$m($localToken . '.sso_login');
+        $cache->$m($localToken . '.sso_token');
     }
 
     /**
@@ -203,14 +208,16 @@ class Client
     public function checkStatus($localToken, $remoteCheck = false)
     {
         $cache = $this->cache;
+        $has = $this->config['cache']['has'];
         if (!$remoteCheck) {
             //检查本地sso登录即可
-            if ($cache->has($localToken . '.sso_login') && $cache->has($localToken . '.sso_token')) {
+            if ($cache->$has($localToken . '.sso_login') && $cache->$has($localToken . '.sso_token')) {
                 return true;
             }
         }
 
-        $ssoToken = $cache->get($localToken . '.sso_token');
+        $get = $this->config['cache']['get'];
+        $ssoToken = $cache->$get($localToken . '.sso_token');
         $this->parseToken($ssoToken);
         if (!$ssoToken) {
             return false;

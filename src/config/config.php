@@ -6,9 +6,9 @@
  */
 
 return [
-    'url'              => '',
+    'url' => '',
     // 接口文档参考: https://www.showdoc.com.cn/1398225327041100
-    'api'              => [
+    'api' => [
         'sso_user'      => '/api/auth/me',
         'logout'        => '/api/auth/logout',
         'status'        => '/api/auth/status',
@@ -18,12 +18,18 @@ return [
         'register'      => '/api/user/user/add',
 
     ],
-    'jwt'              => [
+    'jwt' => [
         'secret' => '',
     ],
 
-    'sign' => [
-        'secret' => ''
+    'sign'             => [
+        'secret' => '',
+    ],
+    'cache'            => [
+        'get'    => 'get',
+        'set'    => 'set',
+        'delete' => 'delete',
+        'has'    => 'has',
     ],
     // 列表中的 路径强制校验sso登录状态.
     'force_sso_verify' => [],
