@@ -18,7 +18,7 @@ class User extends ApiBase
     {
         try {
 
-            $this->client->util->jwt->parseToken($ssoToken);
+            $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
             $url = $this->client->config['url'] . $this->client->config['api']['sso_user'];
 
             $client = new HttpClient();
