@@ -7,12 +7,45 @@
 
 namespace SSOClientSDK\Api;
 
-
+use Exception;
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\RequestException;
 
 class User extends ApiBase
 {
 
+    public function me($ssoToken)
+    {
+        try {
+
+            $this->client->util->jwt->parseToken($ssoToken);
+            $url = $this->client->config['url'] . $this->client->config['api']['sso_user'];
+
+            $client = new HttpClient();
+
+            $res = $client->post($url, [
+                'headers' => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                    'Accept'        => 'application/json',
+                ],
+            ]);
+
+
+            $content = $res->getBody()->getContents();
+            $data    = json_decode($content, true);
+
+            return $data['data'];
+        } catch (RequestException $e) {
+            $code = $e->getResponse()->getStatusCode();
+            if ($code === 401) {
+                throw new Exception('未登录');
+            }
+            if ($code === 404) {
+                throw new Exception('请检查SSO域名配置是否正确.');
+            }
+        }
+        throw new Exception('未登录');
+    }
     /**
      * 修改密码.
      *

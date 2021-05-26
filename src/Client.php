@@ -8,8 +8,6 @@
 namespace SSOClientSDK;
 
 use Exception;
-use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\Exception\RequestException;
 use Psr\SimpleCache\CacheInterface;
 use SSOClientSDK\Utils\Signature;
 use SSOClientSDK\Utils\Util;
@@ -54,35 +52,7 @@ class Client
 
     public function user($ssoToken)
     {
-        try {
-
-            $this->parseToken($ssoToken);
-            $url = $this->config['url'] . $this->config['api']['sso_user'];
-
-            $client = new HttpClient();
-
-            $res = $client->post($url, [
-                'headers' => [
-                    'Authorization' => 'bearer ' . $ssoToken,
-                    'Accept'        => 'application/json',
-                ],
-            ]);
-
-
-            $content = $res->getBody()->getContents();
-            $data    = json_decode($content, true);
-
-            return $data['data'];
-        } catch (RequestException $e) {
-            $code = $e->getResponse()->getStatusCode();
-            if ($code === 401) {
-                throw new Exception('未登录');
-            }
-            if ($code === 404) {
-                throw new Exception('请检查SSO域名配置是否正确.');
-            }
-        }
-        throw new Exception('未登录');
+        return $this->user->me($ssoToken);
     }
 
     public function checkSign($data)
