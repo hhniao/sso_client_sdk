@@ -5,30 +5,29 @@
  * @copyright Canton Univideo
  */
 
-namespace SSOClientSDK;
+namespace SSOClientSDK\Api;
 
 
 use GuzzleHttp\Client as HttpClient;
 
-class User extends Client
+class User extends ApiBase
 {
 
     /**
-     *
      * 修改密码.
-     * @param $localToken
+     *
+     * @param       $localToken
      * @param array $data ['password' => 'new password']
      *
      * @return bool
-     *
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/20
      */
     public function editPassword($localToken, $data)
     {
-        $cache    = $this->cache;
+        $cache    = $this->client->cache;
         $ssoToken = $cache->get($localToken . '.sso_token');
-        $url      = $this->config['url'] . $this->config['api']['edit_password'];
+        $url      = $this->client->config['url'] . $this->client->config['api']['edit_password'];
 
         $client = new HttpClient();
 
@@ -63,11 +62,11 @@ class User extends Client
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/20
      */
-    public function editUserProfile($localToken, $data)
+    public function editUserProfile($localToken, $data): bool
     {
-        $cache    = $this->cache;
+        $cache    = $this->client->cache;
         $ssoToken = $cache->get($localToken . '.sso_token');
-        $url      = $this->config['url'] . $this->config['api']['edit_password'];
+        $url      = $this->client->config['url'] . $this->client->config['api']['edit_password'];
 
         $client = new HttpClient();
 
@@ -89,25 +88,25 @@ class User extends Client
 
         return false;
     }
+
     /**
-     *
      * 注册
+     *
      * @param array $data [ "username" => "用户名", "password" => "密码", "name" => "姓名" ]
      *
      * @return bool
-     *
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/20
      */
     public function register($data)
     {
-        $url      = $this->config['url'] . $this->config['api']['register'];
+        $url = $this->client->config['url'] . $this->client->config['api']['register'];
 
         $client = new HttpClient();
 
         $res = $client->post($url, [
             'headers'     => [
-                'Accept'        => 'application/json',
+                'Accept' => 'application/json',
             ],
             'form_params' => $data,
         ]);
