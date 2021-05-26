@@ -18,9 +18,11 @@ use SSOClientSDK\Utils\Util;
  * Class Client
  *
  * @package SSOClientSDK
- * @property-read array $config
- * @property-read CacheInterface $cache
- * @property-read Util util
+ * @property-read array                  $config
+ * @property-read CacheInterface         $cache
+ * @property-read Util                   util
+ * @property-read \SSOClientSDK\Api\Auth $auth
+ * @property-read \SSOClientSDK\Api\User $user
  * @author  liuchunhua<448455556@qq.com>
  * @date    2021/5/26
  */
@@ -100,7 +102,7 @@ class Client
             return $this->util;
         }
 
-        $class = __NAMESPACE__ . '\\' . ucfirst($name);
+        $class = __NAMESPACE__ . '\\Api\\' . ucfirst($name);
 
         if (class_exists($class)) {
             $api[$name] = new $class($this);

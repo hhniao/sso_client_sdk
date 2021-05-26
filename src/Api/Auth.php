@@ -5,12 +5,11 @@
  * @copyright Canton Univideo
  */
 
-namespace SSOClientSDK;
+namespace SSOClientSDK\Api;
 
 use Exception;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\RequestException;
-use SSOClientSDK\Api\ApiBase;
 
 class Auth extends ApiBase
 {
