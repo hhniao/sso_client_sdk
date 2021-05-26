@@ -44,7 +44,7 @@ class Client
 
     public function __construct($config, $cache)
     {
-        $localConfig  = require(dirname(__DIR__) . '/config/config.php');
+        $localConfig  = require(__DIR__ . '/config/config.php');
         $this->config = array_merge($localConfig, $config);
         $this->cache  = $cache;
 
