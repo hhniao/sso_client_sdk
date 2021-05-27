@@ -84,7 +84,7 @@ class User extends ApiBase
     }
 
     /**
-     * 修改个人资料, 积分
+     * 修改个人资料
      *
      * @param string $localToken
      * @param array  $data ["name" => "姓名","nickname" => "昵称","mobile" => "手机号","head_img" => "头像","sex" => "性别"]

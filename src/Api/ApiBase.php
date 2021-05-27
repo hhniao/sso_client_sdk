@@ -10,7 +10,7 @@ namespace SSOClientSDK\Api;
 
 use SSOClientSDK\Client;
 
-class ApiBase
+abstract class ApiBase
 {
     protected $client;
     public function __construct(Client $client)

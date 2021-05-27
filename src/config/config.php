@@ -17,6 +17,10 @@ return [
         'edit_password' => '/api/user/user/edit',
         'register'      => '/api/user/user/add',
 
+        'score_journal' => [
+            'index' => '/api/score-journal/index',
+            'add' => '/api/score-journal/add',
+        ],
     ],
     'jwt' => [
         'secret' => '',

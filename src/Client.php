@@ -85,4 +85,50 @@ class Client
         }
         throw new Exception($class . '不存在.');
     }
+
+    public function get($ssoToken, $path)
+    {
+        $client = new \GuzzleHttp\Client();
+
+        $res = $client->get($this->config['url'] . $path, [
+            'headers' => [
+                'Authorization' => 'bearer ' . $ssoToken,
+                'Accept'        => 'application/json',
+            ],
+        ]);
+
+        if ($res->getStatusCode() === 401) {
+            throw new Exception('未登录');
+        }
+
+        if ($res->getStatusCode() !== 200) {
+            throw new Exception('未知错误, 稍后再试.');
+        }
+
+        return json_decode($res->getBody()->getContents(), true);
+    }
+
+    public function post($ssoToken, $path, $data = [])
+    {
+        $client = new \GuzzleHttp\Client();
+
+        $res = $client->post($this->config['url'] . $path, [
+            'headers' => [
+                'Authorization' => 'bearer ' . $ssoToken,
+                'Accept'        => 'application/json',
+                'Content-Type'  => 'application/json',
+            ],
+            'json'    => $data,
+        ]);
+
+        if ($res->getStatusCode() === 401) {
+            throw new Exception('未登录');
+        }
+
+        if ($res->getStatusCode() !== 200) {
+            throw new Exception('未知错误, 稍后再试.');
+        }
+
+        return json_decode($res->getBody()->getContents(), true);
+    }
 }
