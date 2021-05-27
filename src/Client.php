@@ -62,8 +62,8 @@ class Client
 
     public function __get($name)
     {
-        if (isset($api[$name])) {
-            return $api[$name];
+        if (isset($this->api[$name])) {
+            return $this->api[$name];
         }
         if (strtolower($name) === 'util') {
             if ($this->util === null) {
@@ -75,9 +75,9 @@ class Client
         $class = __NAMESPACE__ . '\\Api\\' . ucfirst($name);
 
         if (class_exists($class)) {
-            $api[$name] = new $class($this);
+            $this->api[$name] = new $class($this);
 
-            return $api[$name];
+            return $this->api[$name];
         }
 
         if (property_exists($this, $name)) {

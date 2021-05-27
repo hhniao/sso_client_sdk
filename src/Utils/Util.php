@@ -22,17 +22,18 @@ use Exception;
  */
 class Util
 {
+    private $tools = [];
     public function __get($name)
     {
-        if (isset($api[$name])) {
-            return $api[$name];
+        if (isset($this->tools[$name])) {
+            return $this->tools[$name];
         }
         $class = __NAMESPACE__ . '\\' . ucfirst($name);
 
         if (class_exists($class)) {
-            $api[$name] = new $class($this);
+            $this->tools[$name] = new $class($this);
 
-            return $api[$name];
+            return $this->tools[$name];
         }
 
         if (property_exists($this, $name)) {
