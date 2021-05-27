@@ -16,3 +16,9 @@
     $client     = new Client(config('sso'), Cache::store('redis'));
     $localToken = $client->auth->getLocalToken($ssoToken);
     $client->auth->setLogout($localToken);
+
+    // 其他接口
+    $client     = new Client(config('sso'), Cache::store('redis'));
+    $client->get($ssoToken, $path);
+    $client->get($ssoToken, '/api/user/info');
+    $client->post($ssoToken, '/api/user/info', ['foo' => 'bar]);
