@@ -7,7 +7,7 @@
 
 namespace SSOClientSDK\Api;
 
-class Score extends ApiBase
+class ScoreJournal extends ApiBase
 {
     /**
      * @param $ssoToken

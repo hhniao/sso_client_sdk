@@ -16,11 +16,12 @@ use SSOClientSDK\Utils\Util;
  * Class Client
  *
  * @package SSOClientSDK
- * @property-read array                  $config
- * @property-read CacheInterface         $cache
- * @property-read Util                   util
- * @property-read \SSOClientSDK\Api\Auth $auth
- * @property-read \SSOClientSDK\Api\User $user
+ * @property-read array                          $config
+ * @property-read CacheInterface                 $cache
+ * @property-read Util                           util
+ * @property-read \SSOClientSDK\Api\Auth         $auth
+ * @property-read \SSOClientSDK\Api\User         $user
+ * @property-read \SSOClientSDK\Api\ScoreJournal $scoreJournal
  * @author  liuchunhua<448455556@qq.com>
  * @date    2021/5/26
  */
