@@ -21,6 +21,9 @@ return [
             'index' => '/api/score-journal/index',
             'add' => '/api/score-journal/add',
         ],
+        'socialite_user' => [
+            'info' => '/api/socialite-user/info'
+        ],
     ],
     'jwt' => [
         'secret' => '',

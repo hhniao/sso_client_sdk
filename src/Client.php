@@ -9,6 +9,9 @@ namespace SSOClientSDK;
 
 use Exception;
 use Psr\SimpleCache\CacheInterface;
+use SSOClientSDK\Api\Auth;
+use SSOClientSDK\Api\ScoreJournal;
+use SSOClientSDK\Api\User;
 use SSOClientSDK\Utils\Signature;
 use SSOClientSDK\Utils\Util;
 
@@ -19,9 +22,9 @@ use SSOClientSDK\Utils\Util;
  * @property-read array                          $config
  * @property-read CacheInterface                 $cache
  * @property-read Util                           util
- * @property-read \SSOClientSDK\Api\Auth         $auth
- * @property-read \SSOClientSDK\Api\User         $user
- * @property-read \SSOClientSDK\Api\ScoreJournal $scoreJournal
+ * @property-read Auth         $auth
+ * @property-read User         $user
+ * @property-read ScoreJournal $scoreJournal
  * @author  liuchunhua<448455556@qq.com>
  * @date    2021/5/26
  */
@@ -39,12 +42,15 @@ class Client
     private $api = [];
 
     /**
-     * @var \SSOClientSDK\Utils\Util
+     * @var Util
      */
     private $util;
 
     public function __construct($config, $cache)
     {
+        if (isset($config['api'])) {
+            unset($config['api']);
+        }
         $localConfig  = require(__DIR__ . '/config/config.php');
         $this->config = array_merge($localConfig, $config);
         $this->cache  = $cache;
