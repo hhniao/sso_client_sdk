@@ -9,7 +9,7 @@ namespace SSOClientSDK\Api;
 
 use Exception;
 use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ClientException;
 
 class User extends ApiBase
 {
@@ -35,7 +35,7 @@ class User extends ApiBase
             $data    = json_decode($content, true);
 
             return $data['data'];
-        } catch (RequestException $e) {
+        } catch (ClientException $e) {
             $code = $e->getResponse()->getStatusCode();
             if ($code === 401) {
                 throw new Exception('未登录');
@@ -46,6 +46,7 @@ class User extends ApiBase
         }
         throw new Exception('未登录');
     }
+
     /**
      * 修改密码.
      *
