@@ -7,14 +7,15 @@
 
 namespace SSOClientSDK\Api;
 
+use Exception;
+
 class ScoreJournal extends ApiBase
 {
     /**
      * @param $ssoToken
      *
      * @return array
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Exception
+     * @throws Exception
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/27
      */
@@ -28,7 +29,7 @@ class ScoreJournal extends ApiBase
      * @param $data
      *
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/27
      */

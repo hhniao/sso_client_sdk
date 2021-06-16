@@ -19,12 +19,12 @@ use SSOClientSDK\Utils\Util;
  * Class Client
  *
  * @package SSOClientSDK
- * @property-read array                          $config
- * @property-read CacheInterface                 $cache
- * @property-read Util                           util
- * @property-read Auth         $auth
- * @property-read User         $user
- * @property-read ScoreJournal $scoreJournal
+ * @property-read array          $config
+ * @property-read CacheInterface $cache
+ * @property-read Util           util
+ * @property-read Auth           $auth
+ * @property-read User           $user
+ * @property-read ScoreJournal   $scoreJournal
  * @author  liuchunhua<448455556@qq.com>
  * @date    2021/5/26
  */
@@ -93,7 +93,7 @@ class Client
         throw new Exception($class . '不存在.');
     }
 
-    public function get($ssoToken, $path)
+    public function get($ssoToken, $path, $query = [])
     {
         $client = new \GuzzleHttp\Client();
 
@@ -102,6 +102,7 @@ class Client
                 'Authorization' => 'bearer ' . $ssoToken,
                 'Accept'        => 'application/json',
             ],
+            'query'   => $query,
         ]);
 
         if ($res->getStatusCode() === 401) {
