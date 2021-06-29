@@ -10,10 +10,21 @@ namespace SSOClientSDK\Api;
 use Exception;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class User extends ApiBase
 {
 
+    /**
+     * @param $ssoToken
+     *
+     * @return mixed
+     * @throws GuzzleException
+     * @throws Exception
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/6/29
+     */
     public function me($ssoToken)
     {
         try {
@@ -43,6 +54,7 @@ class User extends ApiBase
             if ($code === 404) {
                 throw new Exception('请检查SSO域名配置是否正确.');
             }
+        } catch (Exception $e) {
         }
         throw new Exception('未登录');
     }
@@ -50,14 +62,16 @@ class User extends ApiBase
     /**
      * 修改密码.
      *
-     * @param       $localToken
-     * @param array $data ['password' => 'new password']
+     * @param string $localToken
+     * @param array  $data ['password' => 'new password']
      *
      * @return bool
+     * @throws GuzzleException
+     * @throws InvalidArgumentException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/20
      */
-    public function editPassword($localToken, $data)
+    public function editPassword(string $localToken, array $data): bool
     {
         $cache    = $this->client->cache;
         $ssoToken = $cache->get($localToken . '.sso_token');
@@ -91,12 +105,12 @@ class User extends ApiBase
      * @param array  $data ["name" => "姓名","nickname" => "昵称","mobile" => "手机号","head_img" => "头像","sex" => "性别"]
      *
      * @return bool
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws GuzzleException
+     * @throws InvalidArgumentException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/20
      */
-    public function editUserProfile($localToken, $data): bool
+    public function editUserProfile(string $localToken, array $data): bool
     {
         $cache    = $this->client->cache;
         $ssoToken = $cache->get($localToken . '.sso_token');
@@ -129,10 +143,11 @@ class User extends ApiBase
      * @param array $data [ "username" => "用户名", "password" => "密码", "name" => "姓名" ]
      *
      * @return bool
+     * @throws GuzzleException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/20
      */
-    public function register($data)
+    public function register(array $data): bool
     {
         $url = $this->client->config['url'] . $this->client->config['api']['register'];
 
