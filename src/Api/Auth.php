@@ -147,10 +147,10 @@ class Auth extends ApiBase
 
         $get      = $this->client->config['cache']['get'];
         $ssoToken = $cache->$get($localToken . '.sso_token');
-        $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
         if (!$ssoToken) {
             return false;
         }
+        $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
         $url = $this->client->config['url'] . $this->client->config['api']['status'];
 
         $client = new HttpClient();
