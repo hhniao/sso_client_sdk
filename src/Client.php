@@ -47,6 +47,7 @@ class Client
     private $util;
 
     private static $instance;
+
     public function __construct($config, $cache)
     {
         if (isset($config['api'])) {
@@ -59,16 +60,15 @@ class Client
     }
 
     /**
-     *
      * 静态调用
+     *
      * @param $config
      * @param $cache
      *
      * @return Client
-     *
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/7/6
-     * @since 2.0.1.0
+     * @since  2.0.1.0
      */
     public static function getInstance($config, $cache): Client
     {
