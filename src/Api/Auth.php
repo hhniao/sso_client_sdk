@@ -116,6 +116,12 @@ class Auth extends ApiBase
         return $cache->$get(md5($ssoToken . '.local_token'));
     }
 
+    public function getSsoToken($localToken) {
+        $cache = $this->client->cache;
+        $get      = $this->client->config['cache']['get'];
+        return $cache->$get($localToken . '.sso_token');
+    }
+
     public function setLogout($localToken)
     {
         $cache = $this->client->cache;
