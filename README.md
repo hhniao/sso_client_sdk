@@ -12,7 +12,8 @@
 
 #### 使用示例
 
-    // SSO TOKEN LOGIN
+    // !!! 注意以下接口需要在sso 后台添加推送地址
+    // 1. 注册
     $ssoToken = $_REQUEST['sso_token'];
     $client   = new Client(config('sso'), Cache::store('redis'));
     $ssoUser  = $client->user->me($ssoToken);
@@ -22,15 +23,45 @@
     $client->auth->setLogin($localtoken, $ssoToken);
 
 
-    // SSO LOGOUT
+    // 2. 退出登录
     $client     = new Client(config('sso'), Cache::store('redis'));
     $localToken = $client->auth->getLocalToken($ssoToken);
     $client->auth->setLogout($localToken);
 
-    // 其他接口
-    $client     = new Client(config('sso'), Cache::store('redis'));
-    $client->get($ssoToken, $path);
-    $client->get($ssoToken, '/api/user/info');
-    $client->post($ssoToken, '/api/user/info', ['foo' => 'bar]);
+    // 3. 更新用户资料 
+    try {
+
+        $client = Client::getInstance(config('sso'), CacheClient::getClient());
+
+        $data        = $_POST;
+        $data['uri'] = '/' . request()->path();
+        if (!$client->checkSign($data)) {
+            die('error');
+        }
+
+        $tmp = [];
+        if (isset($data['sex'])) {
+            $tmp['gender'] = $data['sex'];
+        }
+        if (isset($data['head_img'])) {
+            $tmp['avatar'] = $data['head_img'];
+        }
+        if (isset($data['nickname'])) {
+            $tmp['nickname'] = $data['nickname'];
+        }
+
+        $userUnion = new UserUnion();
+        $model = $userUnion->where('open_id', $data['openid'])->find();
+        if ($model === null) {
+            die('success'); // 找不到该用户, 返回成功, 不再推送.
+        }
+        /* @var \app\common\model\User $user */
+        $user = $model->user;
+        $user->save($tmp);
+        die('success');
+    } catch (\Exception $e) {
+
+    }
+    die('error');
 
 #### 
