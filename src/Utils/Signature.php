@@ -30,9 +30,7 @@ class Signature
         }
         $sign = $data['sign'];
         unset($data['sign']);
-        $str = static::buildSignString($data, $secret);
-
-        return md5($str) === $sign;
+        return static::sign($data, $secret) === $sign;
     }
 
     /**
@@ -44,7 +42,7 @@ class Signature
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/7/6
      */
-    public static function buildSignString(array $data, string $secret): string
+    private static function buildSignString(array $data, string $secret): string
     {
         if (!isset($data['timestamp'])) {
             throw new Exception('时间戳必须.');
@@ -66,6 +64,11 @@ class Signature
         $str = trim($str, '&');
 
         return $str . $secret;
+    }
+
+    public static function sign(array $data, string $secret)
+    {
+        return md5(static::buildSignString($data, $secret));
     }
 
 }
