@@ -9,6 +9,7 @@ namespace SSOClientSDK\Api;
 
 use Exception;
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 
 class Auth extends ApiBase
@@ -20,7 +21,7 @@ class Auth extends ApiBase
      * @param $st
      *
      * @return mixed
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/20
      */
@@ -64,7 +65,7 @@ class Auth extends ApiBase
      * @param $localToken
      *
      * @return bool
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/25
      */
@@ -104,7 +105,7 @@ class Auth extends ApiBase
         $set    = $this->client->config['cache']['set'];
         $cache->$set($localToken . '.sso_login', true, 300);
         $cache->$set($localToken . '.sso_token', $ssoToken, $ttl);
-        $cache->$set(md5($ssoToken . '.sso_token'), $localToken, $ttl);
+        $cache->$set(md5($ssoToken . '.local_token'), $localToken, $ttl);
     }
 
     public function getLocalToken($ssoToken)
@@ -112,16 +113,25 @@ class Auth extends ApiBase
         $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
         $cache = $this->client->cache;
         $get   = $this->client->config['cache']['get'];
-        return $cache->$get(md5($ssoToken . '.sso_token'));
+        return $cache->$get(md5($ssoToken . '.local_token'));
+    }
+
+    public function getSsoToken($localToken) {
+        $cache = $this->client->cache;
+        $get      = $this->client->config['cache']['get'];
+        return $cache->$get($localToken . '.sso_token');
     }
 
     public function setLogout($localToken)
     {
         $cache = $this->client->cache;
 
-        $m = $this->client->config['cache']['delete'];
+        $get      = $this->client->config['cache']['get'];
+        $ssoToken = $cache->$get($localToken . '.sso_token');
+        $m        = $this->client->config['cache']['delete'];
         $cache->$m($localToken . '.sso_login');
         $cache->$m($localToken . '.sso_token');
+        $cache->$m(md5($ssoToken . '.local_token'));
     }
 
     /**
@@ -147,10 +157,10 @@ class Auth extends ApiBase
 
         $get      = $this->client->config['cache']['get'];
         $ssoToken = $cache->$get($localToken . '.sso_token');
-        $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
         if (!$ssoToken) {
             return false;
         }
+        $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
         $url = $this->client->config['url'] . $this->client->config['api']['status'];
 
         $client = new HttpClient();
