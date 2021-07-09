@@ -114,7 +114,7 @@ class User extends ApiBase
     {
         $cache    = $this->client->cache;
         $ssoToken = $cache->get($localToken . '.sso_token');
-        $url      = $this->client->config['url'] . $this->client->config['api']['edit_password'];
+        $url      = $this->client->config['url'] . $this->client->config['api']['edit_user'];
 
         $client = new HttpClient();
 
