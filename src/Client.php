@@ -8,6 +8,7 @@
 namespace SSOClientSDK;
 
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 use Psr\SimpleCache\CacheInterface;
 use SSOClientSDK\Api\Auth;
 use SSOClientSDK\Api\ScoreJournal;
@@ -84,11 +85,27 @@ class Client
         return $this->user->me($ssoToken);
     }
 
-    public function checkSign($data)
+    /**
+     * @param $data
+     *
+     * @return bool
+     * @throws SDKException
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
+    public function checkSign($data): bool
     {
         return Signature::checkSign($data, $this->config['sign']['secret']);
     }
 
+    /**
+     * @param $name
+     *
+     * @return mixed|Util
+     * @throws SDKException
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
     public function __get($name)
     {
         if (isset($this->api[$name])) {
@@ -115,7 +132,18 @@ class Client
         throw new SDKException($class . '不存在.');
     }
 
-    public function get($ssoToken, $path, $query = [])
+    /**
+     * @param string $ssoToken
+     * @param string $path
+     * @param array  $query
+     *
+     * @return mixed
+     * @throws SDKException
+     * @throws GuzzleException
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
+    public function get(string $ssoToken, string $path, $query = [])
     {
         try {
 
@@ -144,7 +172,18 @@ class Client
         throw new SDKException('未知错误, 稍后再试.');
     }
 
-    public function post($ssoToken, $path, $data = [])
+    /**
+     * @param string $ssoToken
+     * @param string $path
+     * @param array  $data
+     *
+     * @return mixed
+     * @throws GuzzleException
+     * @throws SDKException
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
+    public function post(string $ssoToken, string $path, $data = [])
     {
         try {
 

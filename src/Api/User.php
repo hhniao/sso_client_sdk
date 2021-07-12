@@ -114,28 +114,43 @@ class User extends ApiBase
      */
     public function editUserProfile(string $localToken, array $data): bool
     {
-        $cache    = $this->client->cache;
-        $ssoToken = $cache->get($localToken . '.sso_token');
-        $url      = $this->client->config['url'] . $this->client->config['api']['edit_user'];
+        try {
+            $cache    = $this->client->cache;
+            $ssoToken = $cache->get($localToken . '.sso_token');
+            $url      = $this->client->config['url'] . $this->client->config['api']['edit_user'];
 
-        $client = new HttpClient();
+            $client = new HttpClient();
 
-        $res = $client->post($url, [
-            'headers'     => [
-                'Authorization' => 'bearer ' . $ssoToken,
-                'Accept'        => 'application/json',
-            ],
-            'form_params' => $data,
-        ]);
+            $res = $client->post($url, [
+                'headers'     => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                    'Accept'        => 'application/json',
+                ],
+                'form_params' => $data,
+            ]);
 
-        if ($res->getStatusCode() === 401) {
+            if (!$res->getStatusCode() === 200) {
+                return false;
+            }
+
+            $str = $res->getBody()->getContents();
+
+            if (empty($str)) {
+                return false;
+            }
+
+            $arr = json_decode($str, true);
+            if (empty($arr) || !isset($arr['code']) || $arr['code'] !== 20000) {
+                return false;
+            }
             return true;
-        }
+        } catch (ClientException $e) {
+            $res = $e->getResponse();
 
-        if ($res->getStatusCode() === 200) {
-            return true;
+            if ($res->getStatusCode() === 401) {
+                return false;
+            }
         }
-
         return false;
     }
 
@@ -151,21 +166,41 @@ class User extends ApiBase
      */
     public function register(array $data): bool
     {
-        $url = $this->client->config['url'] . $this->client->config['api']['register'];
+        try {
+            $url = $this->client->config['url'] . $this->client->config['api']['register'];
 
-        $client = new HttpClient();
+            $client = new HttpClient();
 
-        $res = $client->post($url, [
-            'headers'     => [
-                'Accept' => 'application/json',
-            ],
-            'form_params' => $data,
-        ]);
+            $res = $client->post($url, [
+                'headers'     => [
+                    'Accept' => 'application/json',
+                ],
+                'form_params' => $data,
+            ]);
 
-        if ($res->getStatusCode() === 200) {
+
+            if (!$res->getStatusCode() === 200) {
+                return false;
+            }
+
+            $str = $res->getBody()->getContents();
+
+            if (empty($str)) {
+                return false;
+            }
+
+            $arr = json_decode($str, true);
+            if (empty($arr) || !isset($arr['code']) || $arr['code'] !== 20000) {
+                return false;
+            }
             return true;
-        }
+        } catch (ClientException $e) {
+            $res = $e->getResponse();
 
+            if ($res->getStatusCode() === 401) {
+                return false;
+            }
+        }
         return false;
     }
 }
