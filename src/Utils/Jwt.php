@@ -7,10 +7,10 @@
 
 namespace SSOClientSDK\Utils;
 
-use Exception;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Token;
+use SSOClientSDK\SDKException;
 
 class Jwt
 {
@@ -18,8 +18,8 @@ class Jwt
      * @param $ssoToken
      * @param $secret
      *
-     * @return \Lcobucci\JWT\Token
-     * @throws \Exception
+     * @return Token
+     * @throws SDKException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/26
      */
@@ -31,7 +31,7 @@ class Jwt
         $check = $token->verify(new Sha256(), $secret);
 
         if (!$check) {
-            throw new Exception("非法token, 请确认是否配置jwt key");
+            throw new SDKException("非法token, 请确认是否配置jwt key");
         }
 
         return $token;

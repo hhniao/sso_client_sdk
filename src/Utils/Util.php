@@ -7,7 +7,7 @@
 
 namespace SSOClientSDK\Utils;
 
-use Exception;
+use SSOClientSDK\SDKException;
 
 /**
  *
@@ -39,6 +39,6 @@ class Util
         if (property_exists($this, $name)) {
             return $this->$name;
         }
-        throw new Exception($class . '不存在.');
+        throw new SDKException($class . '不存在.');
     }
 }

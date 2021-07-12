@@ -7,7 +7,7 @@
 
 namespace SSOClientSDK;
 
-use Exception;
+use GuzzleHttp\Exception\ClientException;
 use Psr\SimpleCache\CacheInterface;
 use SSOClientSDK\Api\Auth;
 use SSOClientSDK\Api\ScoreJournal;
@@ -112,53 +112,64 @@ class Client
         if (property_exists($this, $name)) {
             return $this->$name;
         }
-        throw new Exception($class . '不存在.');
+        throw new SDKException($class . '不存在.');
     }
 
     public function get($ssoToken, $path, $query = [])
     {
-        $client = new \GuzzleHttp\Client();
+        try {
 
-        $res = $client->get($this->config['url'] . $path, [
-            'headers' => [
-                'Authorization' => 'bearer ' . $ssoToken,
-                'Accept'        => 'application/json',
-            ],
-            'query'   => $query,
-        ]);
+            $client = new \GuzzleHttp\Client();
 
-        if ($res->getStatusCode() === 401) {
-            throw new Exception('未登录');
+            $res = $client->get($this->config['url'] . $path, [
+                'headers' => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                    'Accept'        => 'application/json',
+                ],
+                'query'   => $query,
+            ]);
+
+            return json_decode($res->getBody()->getContents(), true);
+        } catch (ClientException $e) {
+            $res = $e->getResponse();
+
+            if ($res->getStatusCode() === 401) {
+                throw new SDKException('未登录');
+            }
+
+            if ($res->getStatusCode() !== 200) {
+                throw new SDKException('未知错误, 稍后再试.');
+            }
         }
-
-        if ($res->getStatusCode() !== 200) {
-            throw new Exception('未知错误, 稍后再试.');
-        }
-
-        return json_decode($res->getBody()->getContents(), true);
+        throw new SDKException('未知错误, 稍后再试.');
     }
 
     public function post($ssoToken, $path, $data = [])
     {
-        $client = new \GuzzleHttp\Client();
+        try {
 
-        $res = $client->post($this->config['url'] . $path, [
-            'headers' => [
-                'Authorization' => 'bearer ' . $ssoToken,
-                'Accept'        => 'application/json',
-                'Content-Type'  => 'application/json',
-            ],
-            'json'    => $data,
-        ]);
+            $client = new \GuzzleHttp\Client();
 
-        if ($res->getStatusCode() === 401) {
-            throw new Exception('未登录');
+            $res = $client->post($this->config['url'] . $path, [
+                'headers' => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                    'Accept'        => 'application/json',
+                    'Content-Type'  => 'application/json',
+                ],
+                'json'    => $data,
+            ]);
+
+            return json_decode($res->getBody()->getContents(), true);
+        } catch (ClientException $e) {
+            $res = $e->getResponse();
+            if ($res->getStatusCode() === 401) {
+                throw new SDKException('未登录');
+            }
+
+            if ($res->getStatusCode() !== 200) {
+                throw new SDKException('未知错误, 稍后再试.');
+            }
         }
-
-        if ($res->getStatusCode() !== 200) {
-            throw new Exception('未知错误, 稍后再试.');
-        }
-
-        return json_decode($res->getBody()->getContents(), true);
+        throw new SDKException('未知错误, 稍后再试.');
     }
 }

@@ -7,11 +7,11 @@
 
 namespace SSOClientSDK\Api;
 
-use Exception;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\SimpleCache\InvalidArgumentException;
+use SSOClientSDK\SDKException;
 
 class User extends ApiBase
 {
@@ -20,8 +20,7 @@ class User extends ApiBase
      * @param $ssoToken
      *
      * @return mixed
-     * @throws GuzzleException
-     * @throws Exception
+     * @throws GuzzleException|SDKException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/6/29
      */
@@ -49,14 +48,13 @@ class User extends ApiBase
         } catch (ClientException $e) {
             $code = $e->getResponse()->getStatusCode();
             if ($code === 401) {
-                throw new Exception('未登录');
+                throw new SDKException('未登录');
             }
             if ($code === 404) {
-                throw new Exception('请检查SSO域名配置是否正确.');
+                throw new SDKException('请检查SSO域名配置是否正确.');
             }
-        } catch (Exception $e) {
         }
-        throw new Exception('未登录');
+        throw new SDKException('未登录');
     }
 
     /**
@@ -67,34 +65,38 @@ class User extends ApiBase
      *
      * @return bool
      * @throws GuzzleException
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException|SDKException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/20
      */
     public function editPassword(string $localToken, array $data): bool
     {
-        $cache    = $this->client->cache;
-        $ssoToken = $cache->get($localToken . '.sso_token');
-        $url      = $this->client->config['url'] . $this->client->config['api']['edit_password'];
+        try {
 
-        $client = new HttpClient();
+            $cache    = $this->client->cache;
+            $ssoToken = $cache->get($localToken . '.sso_token');
+            $url      = $this->client->config['url'] . $this->client->config['api']['edit_password'];
 
-        $res = $client->post($url, [
-            'headers'     => [
-                'Authorization' => 'bearer ' . $ssoToken,
-                'Accept'        => 'application/json',
-            ],
-            'form_params' => $data,
-        ]);
+            $client = new HttpClient();
 
-        if ($res->getStatusCode() === 401) {
-            return true;
+            $res = $client->post($url, [
+                'headers'     => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                    'Accept'        => 'application/json',
+                ],
+                'form_params' => $data,
+            ]);
+
+            if ($res->getStatusCode() === 200) {
+                return true;
+            }
+        } catch (ClientException $e) {
+            $res = $e->getResponse();
+
+            if ($res->getStatusCode() === 401) {
+                throw new SDKException('未登录');
+            }
         }
-
-        if ($res->getStatusCode() === 200) {
-            return true;
-        }
-
         return false;
     }
 
