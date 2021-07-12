@@ -7,7 +7,7 @@
 
 namespace SSOClientSDK\Utils;
 
-use Exception;
+use SSOClientSDK\SDKException;
 
 class Signature
 {
@@ -19,14 +19,14 @@ class Signature
      * @param string $secret
      *
      * @return bool
-     * @throws Exception
+     * @throws SDKException()
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/25
      */
     public static function checkSign(array $data, string $secret): bool
     {
         if (!isset($data['sign'])) {
-            throw new Exception('签名必须.');
+            throw new SDKException('签名必须.');
         }
         $sign = $data['sign'];
         unset($data['sign']);
@@ -38,21 +38,21 @@ class Signature
      * @param string $secret
      *
      * @return string
-     * @throws Exception
+     * @throws SDKException()
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/7/6
      */
     private static function buildSignString(array $data, string $secret): string
     {
         if (!isset($data['timestamp'])) {
-            throw new Exception('时间戳必须.');
+            throw new SDKException('时间戳必须.');
         }
         if ($data['timestamp'] < time() - 300 || $data['timestamp'] > time() + 300) {
-            throw new Exception('时间戳错误.');
+            throw new SDKException('时间戳错误.');
         }
 
         if (!isset($data['uri'])) {
-            throw new Exception('URI必须.');
+            throw new SDKException('URI必须.');
         }
         ksort($data);
 

@@ -7,10 +7,11 @@
 
 namespace SSOClientSDK\Api;
 
-use Exception;
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
+use SSOClientSDK\SDKException;
 
 class Auth extends ApiBase
 {
@@ -50,13 +51,13 @@ class Auth extends ApiBase
         } catch (RequestException $e) {
             $code = $e->getResponse()->getStatusCode();
             if ($code === 401) {
-                throw new Exception('未登录');
+                throw new SDKException('未登录');
             }
             if ($code === 404) {
-                throw new Exception('请检查SSO域名配置是否正确.');
+                throw new SDKException('请检查SSO域名配置是否正确.');
             }
         }
-        throw new Exception('未登录');
+        throw new SDKException('未登录');
     }
 
     /**
@@ -71,31 +72,42 @@ class Auth extends ApiBase
      */
     public function logout($localToken): bool
     {
-        $cache    = $this->client->cache;
-        $get      = $this->client->config['cache']['get'];
-        $ssoToken = $cache->$get($localToken . '.sso_token');
-        $url      = $this->client->config['url'] . $this->client->config['api']['logout'];
+        try {
 
-        $client = new HttpClient();
+            $cache    = $this->client->cache;
+            $get      = $this->client->config['cache']['get'];
+            $ssoToken = $cache->$get($localToken . '.sso_token');
+            $url      = $this->client->config['url'] . $this->client->config['api']['logout'];
 
-        $res = $client->post($url, [
-            'headers' => [
-                'Authorization' => 'bearer ' . $ssoToken,
-                'Accept'        => 'application/json',
-            ],
-        ]);
+            $client = new HttpClient();
 
-        if ($res->getStatusCode() === 401) {
-            return true;
+            $res = $client->post($url, [
+                'headers' => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                    'Accept'        => 'application/json',
+                ],
+            ]);
+            if ($res->getStatusCode() === 200) {
+                return true;
+            }
+            return false;
+        } catch (ClientException $e) {
+            $res = $e->getResponse();
+            if ($res->getStatusCode() === 401) {
+                return true;
+            }
         }
-
-        if ($res->getStatusCode() === 200) {
-            return true;
-        }
-
         return false;
     }
 
+    /**
+     * @param $localToken
+     * @param $ssoToken
+     *
+     * @throws SDKException
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
     public function setLogin($localToken, $ssoToken)
     {
         $token  = $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
@@ -108,7 +120,15 @@ class Auth extends ApiBase
         $cache->$set(md5($ssoToken . '.local_token'), $localToken, $ttl);
     }
 
-    public function getLocalToken($ssoToken)
+    /**
+     * @param string $ssoToken
+     *
+     * @return string
+     * @throws SDKException
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
+    public function getLocalToken(string $ssoToken): string
     {
         $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
         $cache = $this->client->cache;
@@ -116,13 +136,27 @@ class Auth extends ApiBase
         return $cache->$get(md5($ssoToken . '.local_token'));
     }
 
-    public function getSsoToken($localToken) {
+    /**
+     * @param string $localToken
+     *
+     * @return string
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
+    public function getSsoToken(string $localToken): string
+    {
         $cache = $this->client->cache;
-        $get      = $this->client->config['cache']['get'];
+        $get   = $this->client->config['cache']['get'];
         return $cache->$get($localToken . '.sso_token');
     }
 
-    public function setLogout($localToken)
+    /**
+     * @param string $localToken
+     *
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
+    public function setLogout(string $localToken)
     {
         $cache = $this->client->cache;
 
@@ -137,14 +171,16 @@ class Auth extends ApiBase
     /**
      * 检查sso是否登录.
      *
-     * @param      $localToken
-     * @param bool $remoteCheck
+     * @param string $localToken
+     * @param bool   $remoteCheck
      *
      * @return bool
+     * @throws GuzzleException
+     * @throws SDKException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/5/19
      */
-    public function checkStatus($localToken, $remoteCheck = false)
+    public function checkStatus(string $localToken, $remoteCheck = false): bool
     {
         $cache = $this->client->cache;
         $has   = $this->client->config['cache']['has'];
@@ -163,25 +199,27 @@ class Auth extends ApiBase
         $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
         $url = $this->client->config['url'] . $this->client->config['api']['status'];
 
-        $client = new HttpClient();
+        try {
+            $client = new HttpClient();
+            $res    = $client->post($url, [
+                'headers' => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                    'Accept'        => 'application/json',
+                ],
+            ]);
 
-        $res = $client->post($url, [
-            'headers' => [
-                'Authorization' => 'bearer ' . $ssoToken,
-                'Accept'        => 'application/json',
-            ],
-        ]);
+            if ($res->getStatusCode() === 200) {
+                // 更新本地sso登录缓存
+                $this->setLogin($localToken, $ssoToken);
+                return true;
+            }
 
-        if ($res->getStatusCode() === 401) {
-            return false;
+        } catch (ClientException $e) {
+            $res = $e->getResponse();
+            if ($res->getStatusCode() === 401) {
+                return false;
+            }
         }
-
-        if ($res->getStatusCode() === 200) {
-            // 更新本地sso登录缓存
-            $this->setLogin($localToken, $ssoToken);
-            return true;
-        }
-
         return false;
     }
 }
