@@ -123,12 +123,12 @@ class Auth extends ApiBase
     /**
      * @param string $ssoToken
      *
-     * @return string
+     * @return null|string
      * @throws SDKException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/7/12
      */
-    public function getLocalToken(string $ssoToken): string
+    public function getLocalToken(string $ssoToken): ?string
     {
         $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
         $cache = $this->client->cache;
@@ -139,11 +139,11 @@ class Auth extends ApiBase
     /**
      * @param string $localToken
      *
-     * @return string
+     * @return null|string
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/7/12
      */
-    public function getSsoToken(string $localToken): string
+    public function getSsoToken(string $localToken): ?string
     {
         $cache = $this->client->cache;
         $get   = $this->client->config['cache']['get'];
