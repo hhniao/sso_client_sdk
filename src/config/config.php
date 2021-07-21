@@ -16,6 +16,7 @@ return [
         'edit_user'     => '/api/user/profile/edit',
         'edit_password' => '/api/user/user/edit',
         'register'      => '/api/user/user/add',
+        'openid_login'  => '/api/auth/openid-login',
 
         'score_journal' => [
             'index' => '/api/score-journal/index',

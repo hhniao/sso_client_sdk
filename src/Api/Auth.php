@@ -12,6 +12,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use SSOClientSDK\SDKException;
+use SSOClientSDK\Utils\Signature;
 
 class Auth extends ApiBase
 {
@@ -58,6 +59,23 @@ class Auth extends ApiBase
             }
         }
         throw new SDKException('未登录');
+    }
+
+    public function openidLogin($openid)
+    {
+        try {
+
+            $params         = [
+                'openid'     => $openid,
+                'timestamps' => time(),
+            ];
+            $params['sign'] = Signature::sign($params, $this->client->config['sign']['secret']);
+            return $this->client->post('', $this->client->config['api']['openid_login'], $params);
+        } catch (ClientException | SDKException $e) {
+
+        }
+
+        return [];
     }
 
     /**
