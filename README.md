@@ -15,7 +15,7 @@
     // !!! 注意以下接口需要在sso 后台添加推送地址
     // 1. 注册
     $ssoToken = $_REQUEST['sso_token'];
-    $client   = new Client(config('sso'), Cache::store('redis'));
+    $client   = Client::getInstance(config('sso'), Cache::store('redis'));
     $ssoUser  = $client->user->me($ssoToken);
     // ... 本地登录业务代码
     // ... 根据 sso 用户信息查询本地用户信息
@@ -24,7 +24,7 @@
 
 
     // 2. 退出登录
-    $client     = new Client(config('sso'), Cache::store('redis'));
+    $client     = Client::getInstance(config('sso'), Cache::store('redis'));
     $localToken = $client->auth->getLocalToken($ssoToken);
     $client->auth->setLogout($localToken);
 
