@@ -19,42 +19,16 @@ class User extends ApiBase
     /**
      * @param $ssoToken
      *
-     * @return mixed
-     * @throws GuzzleException|SDKException
+     * @return array
+     * @throws SDKException|GuzzleException
      * @author liuchunhua<448455556@qq.com>
-     * @date   2021/6/29
+     * @date   2021/8/10
      */
-    public function me($ssoToken)
+    public function me($ssoToken): array
     {
-        try {
-
-            $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
-            $url = $this->client->config['url'] . $this->client->config['api']['sso_user'];
-
-            $client = new HttpClient();
-
-            $res = $client->post($url, [
-                'headers' => [
-                    'Authorization' => 'bearer ' . $ssoToken,
-                    'Accept'        => 'application/json',
-                ],
-            ]);
-
-
-            $content = $res->getBody()->getContents();
-            $data    = json_decode($content, true);
-
-            return $data['data'];
-        } catch (ClientException $e) {
-            $code = $e->getResponse()->getStatusCode();
-            if ($code === 401) {
-                throw new SDKException('未登录');
-            }
-            if ($code === 404) {
-                throw new SDKException('请检查SSO域名配置是否正确.');
-            }
-        }
-        throw new SDKException('未登录');
+        $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
+        $data = $this->client->post($ssoToken, $this->client->config['api']['sso_user']);
+        return $data['data'];
     }
 
     /**

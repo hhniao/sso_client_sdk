@@ -159,17 +159,16 @@ class Client
 
             return json_decode($res->getBody()->getContents(), true);
         } catch (ClientException $e) {
-            $res = $e->getResponse();
-
-            if ($res->getStatusCode() === 401) {
-                throw new SDKException('未登录');
+            $code = $e->getResponse()->getStatusCode();
+            if ($code === 401) {
+                throw new SDKException('未登录', $code);
+            } else if ($code === 404) {
+                throw new SDKException('请检查SSO域名配置是否正确.', $code);
+            } else if ($code === 419) {
+                throw new SDKException('请求频率过高.', $code);
             }
-
-            if ($res->getStatusCode() !== 200) {
-                throw new SDKException('未知错误, 稍后再试.');
-            }
+            throw new SDKException('系统故障.', $code, $e);
         }
-        throw new SDKException('未知错误, 稍后再试.');
     }
 
     /**
@@ -177,13 +176,13 @@ class Client
      * @param string $path
      * @param array  $data
      *
-     * @return mixed
+     * @return array
      * @throws GuzzleException
      * @throws SDKException
      * @author liuchunhua<448455556@qq.com>
      * @date   2021/7/12
      */
-    public function post(string $ssoToken, string $path, $data = [])
+    public function post(string $ssoToken, string $path, $data = []): array
     {
         try {
 
@@ -200,15 +199,15 @@ class Client
 
             return json_decode($res->getBody()->getContents(), true);
         } catch (ClientException $e) {
-            $res = $e->getResponse();
-            if ($res->getStatusCode() === 401) {
-                throw new SDKException('未登录');
+            $code = $e->getResponse()->getStatusCode();
+            if ($code === 401) {
+                throw new SDKException('未登录', $code);
+            } else if ($code === 404) {
+                throw new SDKException('请检查SSO域名配置是否正确.', $code);
+            } else if ($code === 419) {
+                throw new SDKException('请求频率过高.', $code);
             }
-
-            if ($res->getStatusCode() !== 200) {
-                throw new SDKException('未知错误, 稍后再试.');
-            }
+            throw new SDKException('系统故障.', $code, $e);
         }
-        throw new SDKException('未知错误, 稍后再试.');
     }
 }
