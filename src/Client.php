@@ -146,8 +146,11 @@ class Client
     public function get(string $ssoToken, string $path, $query = [])
     {
         try {
-
-            $client = new \GuzzleHttp\Client();
+            $query['timestamp'] = time();
+            $tmp                = $query;
+            $tmp['uri']         = $path;
+            $query['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
+            $client             = new \GuzzleHttp\Client();
 
             $res = $client->get($this->config['url'] . $path, [
                 'headers' => [
@@ -186,7 +189,11 @@ class Client
     {
         try {
 
-            $client = new \GuzzleHttp\Client();
+            $data['timestamp'] = time();
+            $tmp               = $data;
+            $tmp['uri']        = $path;
+            $data['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
+            $client            = new \GuzzleHttp\Client();
 
             $res = $client->post($this->config['url'] . $path, [
                 'headers' => [
