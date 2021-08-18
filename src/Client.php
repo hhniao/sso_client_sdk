@@ -56,8 +56,30 @@ class Client
         }
         $localConfig  = require(__DIR__ . '/config/config.php');
         $this->config = array_merge($localConfig, $config);
+        $this->checkConfig();
         $this->cache  = $cache;
 
+    }
+
+    private function checkConfig()
+    {
+        if (!isset($this->config['sign']) || empty($this->config['sign'])) {
+            throw new SDKException("签名参数未配置.");
+        }
+
+        if (!isset($this->config['sign']['app_key']) || empty($this->config['sign']['app_key'])) {
+            throw new SDKException("签名参数APP KEY未配置.");
+        }
+        if (!isset($this->config['sign']['secret']) || empty($this->config['sign']['secret'])) {
+            throw new SDKException("签名参数APP SECRET未配置.");
+        }
+
+        if (!isset($this->config['jwt']) || empty($this->config['jwt'])) {
+            throw new SDKException("jwt参数未配置.");
+        }
+        if (!isset($this->config['jwt']['secret']) || empty($this->config['jwt']['secret'])) {
+            throw new SDKException("jwt secret参数未配置.");
+        }
     }
 
     /**
@@ -147,6 +169,7 @@ class Client
     {
         try {
             $query['timestamp'] = time();
+            $query['app_key'] = $this->config['sign']['app_key'];
             $tmp                = $query;
             $tmp['uri']         = $path;
             $query['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
@@ -190,6 +213,7 @@ class Client
         try {
 
             $data['timestamp'] = time();
+            $data['app_key'] = $this->config['sign']['app_key'];
             $tmp               = $data;
             $tmp['uri']        = $path;
             $data['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);

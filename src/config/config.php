@@ -31,6 +31,7 @@ return [
     ],
 
     'sign'             => [
+        'app_key' => '',
         'secret' => '',
     ],
     'cache'            => [
