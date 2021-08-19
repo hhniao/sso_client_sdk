@@ -185,6 +185,9 @@ class Auth extends ApiBase
         $cache->$m($localToken . '.sso_login');
         $cache->$m($localToken . '.sso_token');
         $cache->$m(md5($ssoToken . '.local_token'));
+
+        // 删除用户缓存 User::me
+        $cache->$m(md5($ssoToken));
     }
 
     /**

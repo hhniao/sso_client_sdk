@@ -26,9 +26,19 @@ class User extends ApiBase
      */
     public function me($ssoToken): array
     {
-        $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
-        $data = $this->client->post($ssoToken, $this->client->config['api']['sso_user']);
-        return $data['data'];
+        $key  = md5($ssoToken);
+        $get  = $this->client->config['cache']['get'];
+        $data = $this->client->cache->$get($key);
+
+        if (!$data) {
+            $this->client->util->jwt->parseToken($ssoToken, $this->client->config['jwt']['secret']);
+            $data = $this->client->post($ssoToken, $this->client->config['api']['sso_user']);
+
+            $set = $this->client->config['cache']['set'];
+            $this->client->cache->$set($key, $data['data'], $this->client->config['cache']['expire']);
+            return $data['data'];
+        }
+        return $data;
     }
 
     /**

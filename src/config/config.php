@@ -39,6 +39,7 @@ return [
         'set'    => 'set',
         'delete' => 'delete',
         'has'    => 'has',
+        'expire' => 300,
     ],
     // 列表中的 路径强制校验sso登录状态.
     'force_sso_verify' => [],
