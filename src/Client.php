@@ -192,8 +192,13 @@ class Client
                 throw new SDKException('请检查SSO域名配置是否正确.', $code);
             } else if ($code === 419) {
                 throw new SDKException('请求频率过高.', $code);
+            } else if ($code === 403) {
+                throw new SDKException('签名错误.', $code);
+            } else if ($code === 422) {
+                $data = json_decode($e->getResponse()->getBody()->getContents(), true);
+                throw new SDKException("参数错误.", 422, $data);
             }
-            throw new SDKException('系统故障.', $code, $e);
+            throw new SDKException('系统故障.', $code, [], $e);
         }
     }
 
@@ -239,9 +244,11 @@ class Client
                 throw new SDKException('请求频率过高.', $code);
             } else if ($code === 403) {
                 throw new SDKException('签名错误.', $code);
+            } else if ($code === 422) {
+                $data = json_decode($e->getResponse()->getBody()->getContents(), true);
+                throw new SDKException("参数错误.", 422, $data);
             }
-
-            throw new SDKException('系统故障.', $code, $e);
+            throw new SDKException('系统故障.', $code, [], $e);
         }
     }
 }

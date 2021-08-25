@@ -12,7 +12,6 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use SSOClientSDK\SDKException;
-use SSOClientSDK\Utils\Signature;
 
 class Auth extends ApiBase
 {
@@ -63,7 +62,7 @@ class Auth extends ApiBase
 
     public function openidLogin($openid)
     {
-        $params         = [
+        $params = [
             'openid'    => $openid,
             'timestamp' => time(),
             'uri'       => $this->client->config['api']['openid_login'],
