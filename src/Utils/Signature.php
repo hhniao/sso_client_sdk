@@ -50,7 +50,9 @@ class Signature
         if ($data['timestamp'] < time() - 300 || $data['timestamp'] > time() + 300) {
             throw new SDKException('时间戳错误.');
         }
-
+        if (isset($data['sign'])) {
+            unset($data['sign']);
+        }
         if (!isset($data['uri'])) {
             throw new SDKException('URI必须.');
         }
