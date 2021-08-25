@@ -57,7 +57,7 @@ class Client
         $localConfig  = require(__DIR__ . '/config/config.php');
         $this->config = array_merge($localConfig, $config);
         $this->checkConfig();
-        $this->cache  = $cache;
+        $this->cache = $cache;
 
     }
 
@@ -169,7 +169,7 @@ class Client
     {
         try {
             $query['timestamp'] = time();
-            $query['app_key'] = $this->config['sign']['app_key'];
+            $query['app_key']   = $this->config['sign']['app_key'];
             $tmp                = $query;
             $tmp['uri']         = $path;
             $query['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
@@ -213,7 +213,7 @@ class Client
         try {
 
             $data['timestamp'] = time();
-            $data['app_key'] = $this->config['sign']['app_key'];
+            $data['app_key']   = $this->config['sign']['app_key'];
             $tmp               = $data;
             $tmp['uri']        = $path;
             $data['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
@@ -237,7 +237,10 @@ class Client
                 throw new SDKException('请检查SSO域名配置是否正确.', $code);
             } else if ($code === 419) {
                 throw new SDKException('请求频率过高.', $code);
+            } else if ($code === 403) {
+                throw new SDKException('签名错误.', $code);
             }
+
             throw new SDKException('系统故障.', $code, $e);
         }
     }

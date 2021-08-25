@@ -63,20 +63,12 @@ class Auth extends ApiBase
 
     public function openidLogin($openid)
     {
-        try {
-
-            $params         = [
-                'openid'    => $openid,
-                'timestamp' => time(),
-                'uri'       => $this->client->config['api']['openid_login'],
-            ];
-            $params['sign'] = Signature::sign($params, $this->client->config['sign']['secret']);
-            return $this->client->post('', $this->client->config['api']['openid_login'], $params);
-        } catch (ClientException | SDKException $e) {
-
-        }
-
-        return [];
+        $params         = [
+            'openid'    => $openid,
+            'timestamp' => time(),
+            'uri'       => $this->client->config['api']['openid_login'],
+        ];
+        return $this->client->post('', $this->client->config['api']['openid_login'], $params);
     }
 
     /**
