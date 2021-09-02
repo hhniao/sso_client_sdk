@@ -19,8 +19,8 @@ return [
         'openid_login'  => '/api/auth/openid-login',
 
         'score_journal' => [
-            'index' => '/api/score-journal/index',
-            'add' => '/api/score-journal/add',
+            'index' => '/api/user/score-journal/index',
+            'add' => '/api/user/score-journal/add',
         ],
         'socialite_user' => [
             'info' => '/api/socialite-user/info'
