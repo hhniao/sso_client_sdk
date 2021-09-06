@@ -232,7 +232,7 @@ class Client
         $get    = $this->config['cache']['get'];
         $result = $this->cache->$get($key);
 
-        if ($result === null) {
+        if (!$result) {
             $result = $default();
 
             $set = $this->config['cache']['set'];
