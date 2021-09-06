@@ -7,6 +7,7 @@
 
 namespace SSOClientSDK;
 
+use Closure;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\SimpleCache\CacheInterface;
@@ -31,6 +32,7 @@ use SSOClientSDK\Utils\Util;
  */
 class Client
 {
+    private static $instance;
     /**
      * @var CacheInterface
      */
@@ -39,15 +41,17 @@ class Client
      * @var array $config
      */
     protected $config;
-
-    private $api = [];
-
+    /**
+     * 是否使用缓存
+     *
+     * @var bool
+     */
+    private $useCache = true;
+    private $api      = [];
     /**
      * @var Util
      */
     private $util;
-
-    private static $instance;
 
     public function __construct($config, $cache)
     {
@@ -155,6 +159,19 @@ class Client
     }
 
     /**
+     * @param bool $y
+     *
+     * @return $this
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/9/6
+     */
+    public function useCache($y = true): Client
+    {
+        $this->useCache = $y;
+        return $this;
+    }
+
+    /**
      * @param string $ssoToken
      * @param string $path
      * @param array  $query
@@ -168,22 +185,24 @@ class Client
     public function get(string $ssoToken, string $path, $query = [])
     {
         try {
-            $query['timestamp'] = time();
-            $query['app_key']   = $this->config['sign']['app_key'];
-            $tmp                = $query;
-            $tmp['uri']         = $path;
-            $query['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
-            $client             = new \GuzzleHttp\Client();
+            return $this->cacheGet($ssoToken, $path, $query, function () use ($ssoToken, $path, $query) {
+                $query['timestamp'] = time();
+                $query['app_key']   = $this->config['sign']['app_key'];
+                $tmp                = $query;
+                $tmp['uri']         = $path;
+                $query['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
+                $client             = new \GuzzleHttp\Client();
 
-            $res = $client->get($this->config['url'] . $path, [
-                'headers' => [
-                    'Authorization' => 'bearer ' . $ssoToken,
-                    'Accept'        => 'application/json',
-                ],
-                'query'   => $query,
-            ]);
+                $res = $client->get($this->config['url'] . $path, [
+                    'headers' => [
+                        'Authorization' => 'bearer ' . $ssoToken,
+                        'Accept'        => 'application/json',
+                    ],
+                    'query'   => $query,
+                ]);
 
-            return json_decode($res->getBody()->getContents(), true);
+                return $res->getBody()->getContents();
+            });
         } catch (ClientException $e) {
             $code = $e->getResponse()->getStatusCode();
             if ($code === 401) {
@@ -202,6 +221,34 @@ class Client
         }
     }
 
+    private function cacheGet(string $ssoToken, string $path, $data, Closure $default)
+    {
+        if ($this->useCache !== true) {
+            return json_decode($default(), true);
+        }
+
+        $key = $this->buildCacheKey($ssoToken, $path, $data);
+
+        $get    = $this->config['cache']['get'];
+        $result = $this->cache->$get($key);
+
+        if ($result === null) {
+            $result = $default();
+
+            $set = $this->config['cache']['set'];
+            $this->cache->$set($key, $result, $this->config['cache']['expire']);
+        }
+        return json_decode($result, true);
+    }
+
+    private function buildCacheKey(string $ssoToken, string $path, $data = []): string
+    {
+        $data['sso_token'] = $ssoToken;
+        $data['uri']       = $path;
+
+        return md5(http_build_query($data));
+    }
+
     /**
      * @param string $ssoToken
      * @param string $path
@@ -217,23 +264,25 @@ class Client
     {
         try {
 
-            $data['timestamp'] = time();
-            $data['app_key']   = $this->config['sign']['app_key'];
-            $tmp               = $data;
-            $tmp['uri']        = $path;
-            $data['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
-            $client            = new \GuzzleHttp\Client();
+            return $this->cacheGet($ssoToken, $path, $data, function () use ($ssoToken, $path, $data) {
+                $data['timestamp'] = time();
+                $data['app_key']   = $this->config['sign']['app_key'];
+                $tmp               = $data;
+                $tmp['uri']        = $path;
+                $data['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
+                $client            = new \GuzzleHttp\Client();
 
-            $res = $client->post($this->config['url'] . $path, [
-                'headers' => [
-                    'Authorization' => 'bearer ' . $ssoToken,
-                    'Accept'        => 'application/json',
-                    'Content-Type'  => 'application/json',
-                ],
-                'json'    => $data,
-            ]);
+                $res = $client->post($this->config['url'] . $path, [
+                    'headers' => [
+                        'Authorization' => 'bearer ' . $ssoToken,
+                        'Accept'        => 'application/json',
+                        'Content-Type'  => 'application/json',
+                    ],
+                    'json'    => $data,
+                ]);
+                return $res->getBody()->getContents();
+            });
 
-            return json_decode($res->getBody()->getContents(), true);
         } catch (ClientException $e) {
             $code = $e->getResponse()->getStatusCode();
             if ($code === 401) {
