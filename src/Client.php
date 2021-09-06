@@ -289,7 +289,7 @@ class Client
                 throw new SDKException('未登录', $code);
             } else if ($code === 404) {
                 throw new SDKException('请检查SSO域名配置是否正确.', $code);
-            } else if ($code === 419) {
+            } else if ($code === 429) {
                 throw new SDKException('请求频率过高.', $code);
             } else if ($code === 403) {
                 throw new SDKException('签名错误.', $code);
