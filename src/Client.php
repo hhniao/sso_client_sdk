@@ -230,9 +230,11 @@ class Client
         $key = $this->buildCacheKey($ssoToken, $path, $data);
 
         $get    = $this->config['cache']['get'];
+        // 获取缓存数据
         $result = $this->cache->$get($key);
 
         if (!$result) {
+            // 发送http 请求
             $result = $default();
 
             $set = $this->config['cache']['set'];
