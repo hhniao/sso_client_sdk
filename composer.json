@@ -2,6 +2,7 @@
     "name": "ny/sso_client_sdk",
     "type": "library",
     "description": "sso client sdk",
+    "version": "v2.2.0.0",
     "keywords": [
         "sso",
         "sso client sdk"

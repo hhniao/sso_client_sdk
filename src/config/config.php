@@ -39,6 +39,8 @@ return [
         'set'    => 'set',
         'delete' => 'delete',
         'has'    => 'has',
+        'inc' => 'inc',
+        'dec' => 'dec',
         'expire' => 300,
     ],
     // 列表中的 路径强制校验sso登录状态.

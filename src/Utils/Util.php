@@ -17,6 +17,7 @@ use SSOClientSDK\SDKException;
  * @package SSOClientSDK\Utils
  * @property-read \SSOClientSDK\Utils\Signature $signature
  * @property-read \SSOClientSDK\Utils\Jwt $jwt
+ * @property-read \SSOClientSDK\Utils\Locker locker
  * @author  liuchunhua<448455556@qq.com>
  * @date    2021/5/26
  */

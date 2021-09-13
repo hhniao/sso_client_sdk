@@ -229,17 +229,30 @@ class Client
 
         $key = $this->buildCacheKey($ssoToken, $path, $data);
 
-        $get    = $this->config['cache']['get'];
-        // 获取缓存数据
-        $result = $this->cache->$get($key);
+        $get = $this->config['cache']['get'];
 
+        $lock = $this->util->locker->lock($key, $this);
+
+        $result = [];
+
+        if ($lock['level'] > 0) {
+            $ms = 200000 - ($lock['level'] * 100000);
+            if ($ms > 0) {
+                usleep($ms);
+            }
+            // 获取缓存数据
+            $result = $this->cache->$get($key);
+        }
         if (!$result) {
             // 发送http 请求
             $result = $default();
-
-            $set = $this->config['cache']['set'];
-            $this->cache->$set($key, $result, $this->config['cache']['expire']);
+            if ($lock['locked'] == 0) {
+                $set = $this->config['cache']['set'];
+                $this->cache->$set($key, $result, $this->config['cache']['expire']);
+                $this->util->locker->unlock($key, $this);
+            }
         }
+        $this->util->locker->decLvl($key, $this);
         return json_decode($result, true);
     }
 
