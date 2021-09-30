@@ -10,6 +10,7 @@ namespace SSOClientSDK;
 use Closure;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
 use SSOClientSDK\Api\Auth;
 use SSOClientSDK\Api\ScoreJournal;
@@ -186,11 +187,7 @@ class Client
     {
         try {
             return $this->cacheGet($ssoToken, $path, $query, function () use ($ssoToken, $path, $query) {
-                $query['timestamp'] = time();
-                $query['app_key']   = $this->config['sign']['app_key'];
-                $tmp                = $query;
-                $tmp['uri']         = $path;
-                $query['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
+                $this->sign($path, $query);
                 $client             = new \GuzzleHttp\Client();
 
                 $res = $client->get($this->config['url'] . $path, [
@@ -204,20 +201,7 @@ class Client
                 return $res->getBody()->getContents();
             });
         } catch (ClientException $e) {
-            $code = $e->getResponse()->getStatusCode();
-            if ($code === 401) {
-                throw new SDKException('未登录', $code);
-            } else if ($code === 404) {
-                throw new SDKException('请检查SSO域名配置是否正确.', $code);
-            } else if ($code === 419) {
-                throw new SDKException('请求频率过高.', $code);
-            } else if ($code === 403) {
-                throw new SDKException('签名错误.', $code);
-            } else if ($code === 422) {
-                $data = json_decode($e->getResponse()->getBody()->getContents(), true);
-                throw new SDKException("参数错误.", 422, $data);
-            }
-            throw new SDKException('系统故障.', $code, [], $e);
+            $this->throwException($e);
         }
     }
 
@@ -254,6 +238,63 @@ class Client
     /**
      * @param string $ssoToken
      * @param string $path
+     * @param array  $query
+     *
+     * @return ResponseInterface
+     * @throws SDKException
+     * @throws GuzzleException
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
+    public function getRaw(string $ssoToken, string $path, $query = [])
+    {
+        try {
+
+            $this->sign($path, $query);
+            $client = new \GuzzleHttp\Client();
+
+            return $client->get($this->config['url'] . $path, [
+                'headers' => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                ],
+                'query'   => $query,
+            ]);
+
+        } catch (ClientException $e) {
+            $this->throwException($e);
+        }
+    }
+
+    private function sign($uri, &$data)
+    {
+        $data['timestamp'] = time();
+        $data['app_key']   = $this->config['sign']['app_key'];
+        $tmp               = $data;
+        $tmp['uri']        = $uri;
+        $data['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
+    }
+
+    private function throwException(ClientException $e)
+    {
+        $code = $e->getResponse()->getStatusCode();
+        if ($code === 401) {
+            throw new SDKException('未登录', $code);
+        } else if ($code === 404) {
+            throw new SDKException('请检查SSO域名配置是否正确.', $code);
+        } else if ($code === 419) {
+            throw new SDKException('请求频率过高.', $code);
+        } else if ($code === 403) {
+            throw new SDKException('签名错误.', $code);
+        } else if ($code === 422) {
+            $data = json_decode($e->getResponse()->getBody()->getContents(), true);
+            throw new SDKException("参数错误.", 422, $data);
+        }
+        throw new SDKException('系统故障.', $code, [], $e);
+    }
+
+    /**
+     * @param string $ssoToken
+     * @param string $path
      * @param array  $data
      *
      * @return array
@@ -267,11 +308,7 @@ class Client
         try {
 
             return $this->cacheGet($ssoToken, $path, $data, function () use ($ssoToken, $path, $data) {
-                $data['timestamp'] = time();
-                $data['app_key']   = $this->config['sign']['app_key'];
-                $tmp               = $data;
-                $tmp['uri']        = $path;
-                $data['sign']      = Signature::sign($tmp, $this->config['sign']['secret']);
+                $this->sign($path, $data);
                 $client            = new \GuzzleHttp\Client();
 
                 $res = $client->post($this->config['url'] . $path, [
@@ -286,20 +323,7 @@ class Client
             });
 
         } catch (ClientException $e) {
-            $code = $e->getResponse()->getStatusCode();
-            if ($code === 401) {
-                throw new SDKException('未登录', $code);
-            } else if ($code === 404) {
-                throw new SDKException('请检查SSO域名配置是否正确.', $code);
-            } else if ($code === 429) {
-                throw new SDKException('请求频率过高.', $code);
-            } else if ($code === 403) {
-                throw new SDKException('签名错误.', $code);
-            } else if ($code === 422) {
-                $data = json_decode($e->getResponse()->getBody()->getContents(), true);
-                throw new SDKException("参数错误.", 422, $data);
-            }
-            throw new SDKException('系统故障.', $code, [], $e);
+            $this->throwException($e);
         }
     }
 }
