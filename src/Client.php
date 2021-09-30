@@ -188,7 +188,7 @@ class Client
         try {
             return $this->cacheGet($ssoToken, $path, $query, function () use ($ssoToken, $path, $query) {
                 $this->sign($path, $query);
-                $client             = new \GuzzleHttp\Client();
+                $client = new \GuzzleHttp\Client();
 
                 $res = $client->get($this->config['url'] . $path, [
                     'headers' => [
@@ -213,7 +213,7 @@ class Client
 
         $key = $this->buildCacheKey($ssoToken, $path, $data);
 
-        $get    = $this->config['cache']['get'];
+        $get = $this->config['cache']['get'];
         // 获取缓存数据
         $result = $this->cache->$get($key);
 
@@ -233,36 +233,6 @@ class Client
         $data['uri']       = $path;
 
         return md5(http_build_query($data));
-    }
-
-    /**
-     * @param string $ssoToken
-     * @param string $path
-     * @param array  $query
-     *
-     * @return ResponseInterface
-     * @throws SDKException
-     * @throws GuzzleException
-     * @author liuchunhua<448455556@qq.com>
-     * @date   2021/7/12
-     */
-    public function getRaw(string $ssoToken, string $path, $query = [])
-    {
-        try {
-
-            $this->sign($path, $query);
-            $client = new \GuzzleHttp\Client();
-
-            return $client->get($this->config['url'] . $path, [
-                'headers' => [
-                    'Authorization' => 'bearer ' . $ssoToken,
-                ],
-                'query'   => $query,
-            ]);
-
-        } catch (ClientException $e) {
-            $this->throwException($e);
-        }
     }
 
     private function sign($uri, &$data)
@@ -295,6 +265,36 @@ class Client
     /**
      * @param string $ssoToken
      * @param string $path
+     * @param array  $query
+     *
+     * @return ResponseInterface
+     * @throws SDKException
+     * @throws GuzzleException
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
+    public function getRaw(string $ssoToken, string $path, $query = [])
+    {
+        try {
+
+            $this->sign($path, $query);
+            $client = new \GuzzleHttp\Client();
+
+            return $client->get($this->config['url'] . $path, [
+                'headers' => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                ],
+                'query'   => $query,
+            ]);
+
+        } catch (ClientException $e) {
+            $this->throwException($e);
+        }
+    }
+
+    /**
+     * @param string $ssoToken
+     * @param string $path
      * @param array  $data
      *
      * @return array
@@ -309,7 +309,7 @@ class Client
 
             return $this->cacheGet($ssoToken, $path, $data, function () use ($ssoToken, $path, $data) {
                 $this->sign($path, $data);
-                $client            = new \GuzzleHttp\Client();
+                $client = new \GuzzleHttp\Client();
 
                 $res = $client->post($this->config['url'] . $path, [
                     'headers' => [
@@ -321,6 +321,38 @@ class Client
                 ]);
                 return $res->getBody()->getContents();
             });
+
+        } catch (ClientException $e) {
+            $this->throwException($e);
+        }
+    }
+
+    /**
+     * @param string $ssoToken
+     * @param string $path
+     * @param array  $data
+     *
+     * @return ResponseInterface
+     * @throws GuzzleException
+     * @throws SDKException
+     * @author liuchunhua<448455556@qq.com>
+     * @date   2021/7/12
+     */
+    public function postRaw(string $ssoToken, string $path, $data = []): ResponseInterface
+    {
+        try {
+
+            $this->sign($path, $data);
+            $client = new \GuzzleHttp\Client();
+
+            return $client->post($this->config['url'] . $path, [
+                'headers' => [
+                    'Authorization' => 'bearer ' . $ssoToken,
+                    'Accept'        => 'application/json',
+                    'Content-Type'  => 'application/json',
+                ],
+                'json'    => $data,
+            ]);
 
         } catch (ClientException $e) {
             $this->throwException($e);
