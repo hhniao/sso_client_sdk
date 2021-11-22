@@ -3,7 +3,7 @@
     "type": "library",
     "description": "sso client sdk",
     "minimum-stability": "stable",
-    "version": "v2.1.0.1",
+    "version": "v2.1.0.2",
     "keywords": [
         "sso",
         "sso client sdk"
