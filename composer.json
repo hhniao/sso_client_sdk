@@ -2,6 +2,8 @@
     "name": "ny/sso_client_sdk",
     "type": "library",
     "description": "sso client sdk",
+    "minimum-stability": "stable",
+    "version": "v2.1.0.0-release",
     "keywords": [
         "sso",
         "sso client sdk"
