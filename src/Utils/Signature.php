@@ -47,9 +47,9 @@ class Signature
         if (!isset($data['timestamp'])) {
             throw new SDKException('时间戳必须.');
         }
-        if ($data['timestamp'] < time() - 300 || $data['timestamp'] > time() + 300) {
-            throw new SDKException('时间戳错误.');
-        }
+        // if ($data['timestamp'] < time() - 300 || $data['timestamp'] > time() + 300) {
+        //     throw new SDKException('时间戳错误.');
+        // }
         if (isset($data['sign'])) {
             unset($data['sign']);
         }
