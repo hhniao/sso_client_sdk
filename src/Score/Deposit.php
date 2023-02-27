@@ -6,10 +6,10 @@ use App\Models\User;
 use App\Models\UserScore;
 use App\Models\UserScoreLog;
 use App\Models\UserScoreRate;
-use App\Models\UserWallet;
 use App\Services\Score\Channels\ChannelInterface;
 use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +17,8 @@ class Deposit
 {
 
     private $channels = [
-        'wallets'
+        'wallets' => '\\App\\Services\\Score\\Channels\\Wallets',
+        'payment' => '\\App\\Services\\Score\\Channels\\Payment'
     ];
     /**
      * 支付渠道
@@ -55,18 +56,13 @@ class Deposit
     private $score;
 
     /**
-     * @var UserWallet
-     */
-    private $wallet;
-
-    /**
      * @var UserScoreLog
      */
     private $userScoreLog;
 
-    public function __construct($channel, $cashAmount, $currency, $scoreCode)
+    public function __construct($channel, $cashAmount, $currency, $scoreCode, $channelData = [])
     {
-        if (!in_array($channel, $this->channels)) {
+        if (!isset($this->channels[$channel])) {
             abort(400, '渠道不支持');
         }
         $this->cashAmount = $cashAmount;
@@ -74,27 +70,9 @@ class Deposit
         $this->scoreCode = $scoreCode;
         $this->user = Auth::user();
 
-        $class = '\\App\\Services\\Score\\Channels\\' . ucfirst($channel);
-        $this->channel = new $class();
-    }
+        $class = $this->channels[$channel];
+        $this->channel = new $class($channelData);
 
-    /**
-     * 异步操作, 异步回调渠道
-     * @return void
-     */
-    public static function asyncAction()
-    {
-
-    }
-
-    public function exec()
-    {
-        $wallet = UserWallet::query()->where('currency', $this->currency)->first();
-
-        if (!$wallet || $wallet->amount < $this->cashAmount * $wallet->exchangeRate()) {
-            return [false, '余额不足.'];
-        }
-        $this->wallet = $wallet;
         $userScore = UserScore::query()->where('score_code', $this->scoreCode)->first();
         if (!$userScore) {
             $userScore = new UserScore();
@@ -105,20 +83,54 @@ class Deposit
             $userScore->save();
         }
         $this->userScore = $userScore;
+    }
 
-        $rate = UserScoreRate::query()->where('score_code', $this->scoreCode)
-            ->where('currency', $this->currency)
-            ->where('cash_min', '<=', $this->cashAmount)
-            ->where('cash_max', '>', $this->cashAmount)
-            ->first();
-
-        if (!$rate) {
-            return [false, '未设置积分兑换比例'];
+    /**
+     * 异步操作, 异步回调渠道
+     * @return
+     */
+    public static function asyncAction($orderNo, $status)
+    {
+        $log = UserScoreLog::query()->where('order_no', $orderNo)->first();
+        if (!$log) {
+            return [false, '找不到记录'];
         }
-        $this->score = $rate->change_rate * $this->cashAmount;
 
         DB::beginTransaction();
+        try {
 
+            $log->status = $status;
+
+            if ($status === 3) {
+                $model = UserScore::query()->where('user_id', $log->user_id)
+                    ->where('score_code', $log->score_code)->first();
+
+                if (!$model) {
+                    DB::rollBack();
+                    return [false, '找不到记录'];
+                }
+
+                $model->amount += $log->amount;
+                $model->save();
+            }
+
+            $log->save();
+            DB::commit();
+            return [true, ''];
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return [false, config('app.debug') ? $e->getMessage() : '系统错误'];
+        }
+    }
+
+    /**
+     * 现金充值, 即时到账.
+     * @return array
+     */
+    public function exec()
+    {
+        $this->init();
+        DB::beginTransaction();
         try {
 
             $this->log();
@@ -134,6 +146,21 @@ class Deposit
         }
     }
 
+    private function init()
+    {
+        $rate = UserScoreRate::query()->where('score_code', $this->scoreCode)
+            ->where('currency', $this->currency)
+            ->where('cash_min', '<=', $this->cashAmount)
+            ->where('cash_max', '>', $this->cashAmount)
+            ->first();
+
+        if (!$rate) {
+            abort(400, '未设置积分兑换比例');
+        }
+        $this->score = $rate->change_rate * $this->cashAmount;
+        $this->channel->init($this);
+    }
+
     private function log()
     {
         $model = new UserScoreLog();
@@ -141,8 +168,9 @@ class Deposit
         $model->score_code = $this->scoreCode;
         $model->amount = $this->score;
         $model->before_amount = $this->userScore->amount;
-        $model->mark = $this->channel->name() . '充值';
+        $model->mark = '[购买-积分增加] ' . $this->channel->name() . '购买';
         $model->status = $this->channel->callbackExists() ? 1 : 3;
+        $this->channel->setOrderNo($model);
         $model->save();
         $this->userScoreLog = $model;
     }
